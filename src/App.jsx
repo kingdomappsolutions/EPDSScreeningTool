@@ -1,6 +1,9 @@
 import React, { useState } from "react"
 import "./App.css"
 
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW:
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysXnNMhIQfv7Ofs9gbuGQYmxIKdLlUpy_MLkDHIJUAVSN7aZPFh3FHYElwm26YNgrB/exec';
+
 const CONTENT = {
     en: {
         langLabel: "Español",
