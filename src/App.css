@@ -410,3 +410,51 @@ body {
     font-size: 0.8rem;
     color: var(--muted);
 }
+
+/* NICU Length of Stay Card */
+.los-card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    color: var(--primary);
+}
+
+.los-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+}
+
+.los-input {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.7rem 0.85rem;
+    font-size: 1.05rem;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text);
+}
+
+.los-input:focus {
+    outline: 2px solid var(--primary);
+    border-color: var(--primary);
+}
+
+.los-helper {
+    margin: 0.55rem 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.field-error {
+    color: var(--urgent-text);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0;
+}
+
+.los-card.unanswered-error {
+    border: 2px solid var(--urgent-border);
+    background: #fffafa;
+}

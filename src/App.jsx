@@ -2,7 +2,8 @@ import React, { useState } from "react"
 import "./App.css"
 
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW:
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysXnNMhIQfv7Ofs9gbuGQYmxIKdLlUpy_MLkDHIJUAVSN7aZPFh3FHYElwm26YNgrB/exec';
+const GOOGLE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbysXnNMhIQfv7Ofs9gbuGQYmxIKdLlUpy_MLkDHIJUAVSN7aZPFh3FHYElwm26YNgrB/exec"
 
 const CONTENT = {
     en: {
@@ -11,6 +12,14 @@ const CONTENT = {
         title: "Edinburgh Postnatal Depression Scale (EPDS)",
         subtitle:
             "Your Personal Postpartum Wellness Screening & Resource Guide",
+        losSectionTitle: "NICU Stay Information",
+        losLabel:
+            "How many days has your baby been in the NICU? (Enter 0 if born today):",
+        losPlaceholder: "e.g., 7",
+        losHelper:
+            "Recorded anonymously as total days in the NICU. No names, birth dates, or personal identifiers are collected.",
+        losWarning:
+            "Please enter the number of days your baby has been in the NICU (0 or greater).",
         instructionsTitle: "Instructions",
         instructionsText:
             "Since you are either pregnant or have recently had a baby, we want to know how you feel. Please select the answer that comes closest to how you have felt IN THE PAST 7 DAYS—not just how you feel today. Complete all 10 items. This is a screening test; not a medical diagnosis. If something doesn’t seem right, call your health care provider regardless of your score.",
@@ -136,9 +145,10 @@ const CONTENT = {
             },
         ],
         submitBtn: "View My Score & Personalized Next Steps",
+        submittingBtn: "Submitting...",
         resetBtn: "Clear & Start Over",
         incompleteWarning:
-            "Please answer all 10 questions before viewing your results.",
+            "Please enter the NICU length of stay and answer all 10 questions before viewing your results.",
         progressText: "Completed",
         resultsHeading: "Your Personal Postpartum Wellness Resource Guide",
         totalScoreLabel: "Your Total EPDS Score",
@@ -272,6 +282,14 @@ const CONTENT = {
         title: "Escala Edinburgh para la Depresión Postnatal (EPDS)",
         subtitle:
             "Guía Personal de Detección y Recursos para el Bienestar Posparto",
+        losSectionTitle: "Información de Estadía en la NICU",
+        losLabel:
+            "¿Cuántos días ha estado su bebé en la NICU? (Ingrese 0 si nació hoy):",
+        losPlaceholder: "ej., 7",
+        losHelper:
+            "Se registra de forma anónima como el total de días en la NICU. No se recopilan nombres, fechas de nacimiento ni datos personales.",
+        losWarning:
+            "Por favor ingrese el número de días que su bebé ha estado en la NICU (0 o más).",
         instructionsTitle: "Instrucciones",
         instructionsText:
             "Como usted está embarazada o hace poco que tuvo un bebé, nos gustaría saber como se siente actualmente. Por favor MARQUE la respuesta que más se acerca a como se ha sentido durante LOS ÚLTIMOS 7 DÍAS y no sólo como se ha sentido hoy. Complete las 10 preguntas. Esta es una prueba de detección; no es un diagnóstico médico. Si algo no parece estar bien, llame a su proveedor de atención médica sin importar su puntaje.",
@@ -403,9 +421,10 @@ const CONTENT = {
             },
         ],
         submitBtn: "Ver Mi Puntaje y Próximos Pasos",
+        submittingBtn: "Enviando...",
         resetBtn: "Borrar y Comenzar de Nuevo",
         incompleteWarning:
-            "Por favor responda las 10 preguntas antes de ver sus resultados.",
+            "Por favor ingrese los días en la NICU y responda las 10 preguntas antes de ver sus resultados.",
         progressText: "Completado",
         resultsHeading:
             "Su Guía Personal de Recursos para el Bienestar Posparto",
@@ -539,16 +558,30 @@ const CONTENT = {
 
 export default function App() {
     const [lang, setLang] = useState("en")
+    const [losInput, setLosInput] = useState("")
     const [answers, setAnswers] = useState({})
     const [submitted, setSubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [showWarning, setShowWarning] = useState(false)
 
     const t = CONTENT[lang]
     const answeredCount = Object.keys(answers).length
     const allAnswered = answeredCount === 10
 
+    const parsedLos = losInput.trim() === "" ? NaN : Number(losInput)
+    const isLosValid = Number.isInteger(parsedLos) && parsedLos >= 0
+
     const toggleLanguage = () => {
         setLang((prev) => (prev === "en" ? "es" : "en"))
+    }
+
+    const handleLosChange = (e) => {
+        const val = e.target.value
+        // Allow empty string or non-negative digits only
+        if (val === "" || /^\d+$/.test(val)) {
+            setLosInput(val)
+            if (showWarning) setShowWarning(false)
+        }
     }
 
     const handleSelect = (questionId, optionIndex) => {
@@ -559,41 +592,84 @@ export default function App() {
         if (showWarning) setShowWarning(false)
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        if (!allAnswered) {
-            setShowWarning(true)
-            return
-        }
-        setSubmitted(true)
-        window.scrollTo({ top: 0, behavior: "smooth" })
-    }
-
-    const handleReset = () => {
-        setAnswers({})
-        setSubmitted(false)
-        setShowWarning(false)
-        window.scrollTo({ top: 0, behavior: "smooth" })
-    }
-
     const calculateScores = () => {
         let total = 0
         let q10Score = 0
+        const itemScores = {}
+
         t.questions.forEach((q) => {
             const selectedIdx = answers[q.id]
             if (selectedIdx !== undefined) {
                 const pts = q.options[selectedIdx].score
+                itemScores[`q${q.id}`] = pts
                 total += pts
                 if (q.id === 10) q10Score = pts
             }
         })
-        return { total, q10Score }
+
+        return { total, q10Score, itemScores }
     }
 
     const getTierKey = (total, q10Score) => {
         if (q10Score > 0) return "urgent"
         if (total >= 10) return "moderate"
         return "low"
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!allAnswered || !isLosValid) {
+            setShowWarning(true)
+            return
+        }
+
+        const { total, q10Score, itemScores } = calculateScores()
+        const currentTierKey = getTierKey(total, q10Score)
+
+        const payload = {
+            language: lang === "en" ? "English" : "Spanish",
+            nicuLosDays: parsedLos,
+            ...itemScores,
+            totalScore: total,
+            riskTier:
+                currentTierKey === "urgent"
+                    ? "Urgent Crisis (Q10 > 0)"
+                    : currentTierKey === "moderate"
+                      ? "Mild-Moderate Elevation (10+)"
+                      : "Healthy Coping (< 10)",
+        }
+
+        setIsSubmitting(true)
+
+        try {
+            if (
+                GOOGLE_SCRIPT_URL &&
+                !GOOGLE_SCRIPT_URL.includes("YOUR_SCRIPT_ID_HERE")
+            ) {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8",
+                    },
+                    body: JSON.stringify(payload),
+                })
+            }
+        } catch (err) {
+            console.error("Sheet logging failed:", err)
+        } finally {
+            setIsSubmitting(false)
+            setSubmitted(true)
+            window.scrollTo({ top: 0, behavior: "smooth" })
+        }
+    }
+
+    const handleReset = () => {
+        setLosInput("")
+        setAnswers({})
+        setSubmitted(false)
+        setShowWarning(false)
+        window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
     const { total, q10Score } = calculateScores()
@@ -633,6 +709,30 @@ export default function App() {
 
                 {!submitted ? (
                     <form onSubmit={handleSubmit} noValidate>
+                        <section
+                            className={`card los-card ${showWarning && !isLosValid ? "unanswered-error" : ""}`}
+                        >
+                            <h2>{t.losSectionTitle}</h2>
+                            <label htmlFor="nicu-los" className="los-label">
+                                {t.losLabel}
+                            </label>
+                            <input
+                                id="nicu-los"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                className="los-input"
+                                placeholder={t.losPlaceholder}
+                                value={losInput}
+                                onChange={handleLosChange}
+                                required
+                            />
+                            {showWarning && !isLosValid && (
+                                <p className="field-error">{t.losWarning}</p>
+                            )}
+                            <p className="los-helper">{t.losHelper}</p>
+                        </section>
+
                         <section className="card instructions-card">
                             <h2>{t.instructionsTitle}</h2>
                             <p>{t.instructionsText}</p>
@@ -716,8 +816,12 @@ export default function App() {
                         )}
 
                         <div className="actions-row">
-                            <button type="submit" className="primary-btn">
-                                {t.submitBtn}
+                            <button
+                                type="submit"
+                                className="primary-btn"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? t.submittingBtn : t.submitBtn}
                             </button>
                         </div>
                     </form>
