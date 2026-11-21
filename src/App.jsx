@@ -12,6 +12,12 @@ const CONTENT = {
         title: "Edinburgh Postnatal Depression Scale (EPDS)",
         subtitle:
             "Your Personal Postpartum Wellness Screening & Resource Guide",
+        acknowledgmentTitle: "ACKNOWLEDGMENT AND LIMITATION OF LIABILITY:",
+        acknowledgmentParagraphs: [
+            "By completing this questionnaire, I understand that the Edinburgh Postnatal Depression Scale (EPDS) is a screening tool used solely to assist the NICU care team in evaluating environmental factors impacting my infant’s care plan.",
+            "I explicitly acknowledge that this screening does not constitute a formal psychiatric diagnosis, clinical evaluation, or the establishment of a doctor-patient relationship between myself and Methodist Mansfield Medical Center or its NICU staff.",
+            "I understand and agree that it is my sole responsibility to follow up with my primary care physician, obstetric provider, or a licensed mental health professional for formal evaluation, diagnosis, and treatment. Methodist Mansfield Medical Center and its employees assume no ongoing liability for my outpatient psychiatric or medical care.",
+        ],
         losSectionTitle: "NICU Stay Information",
         losLabel:
             "How many days has your baby been in the NICU? (Enter 0 if born today):",
@@ -282,6 +288,12 @@ const CONTENT = {
         title: "Escala Edinburgh para la Depresión Postnatal (EPDS)",
         subtitle:
             "Guía Personal de Detección y Recursos para el Bienestar Posparto",
+        acknowledgmentTitle: "RECONOCIMIENTO Y LIMITACIÓN DE RESPONSABILIDAD:",
+        acknowledgmentParagraphs: [
+            "Al completar este cuestionario, entiendo que la Escala de Depresión Postnatal de Edimburgo (EPDS) es una herramienta de detección utilizada únicamente para ayudar al equipo de atención de la NICU a evaluar los factores ambientales que influyen en el plan de atención de mi bebé.",
+            "Reconozco explícitamente que esta evaluación no constituye un diagnóstico psiquiátrico formal, una evaluación clínica ni el establecimiento de una relación médico-paciente entre mi persona y Methodist Mansfield Medical Center o su personal de la NICU.",
+            "Entiendo y acepto que es mi exclusiva responsabilidad hacer seguimiento con mi médico de atención primaria, mi proveedor obstétrico o un profesional de salud mental con licencia para una evaluación formal, diagnóstico y tratamiento. Methodist Mansfield Medical Center y sus empleados no asumen ninguna responsabilidad continua por mi atención psiquiátrica o médica ambulatoria.",
+        ],
         losSectionTitle: "Información de Estadía en la NICU",
         losLabel:
             "¿Cuántos días ha estado su bebé en la NICU? (Ingrese 0 si nació hoy):",
@@ -577,7 +589,6 @@ export default function App() {
 
     const handleLosChange = (e) => {
         const val = e.target.value
-        // Allow empty string or non-negative digits only
         if (val === "" || /^\d+$/.test(val)) {
             setLosInput(val)
             if (showWarning) setShowWarning(false)
@@ -706,6 +717,16 @@ export default function App() {
                     <h1>{t.title}</h1>
                     <p className="subtitle">{t.subtitle}</p>
                 </div>
+
+                <section
+                    className="card acknowledgment-card"
+                    aria-labelledby="ack-heading"
+                >
+                    <h2 id="ack-heading">{t.acknowledgmentTitle}</h2>
+                    {t.acknowledgmentParagraphs.map((paragraph, idx) => (
+                        <p key={idx}>{paragraph}</p>
+                    ))}
+                </section>
 
                 {!submitted ? (
                     <form onSubmit={handleSubmit} noValidate>

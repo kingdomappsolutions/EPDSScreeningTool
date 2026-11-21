@@ -458,3 +458,28 @@ body {
     border: 2px solid var(--urgent-border);
     background: #fffafa;
 }
+
+/* Acknowledgment & Limitation of Liability Card */
+.acknowledgment-card {
+    background: #f8fafc;
+    border-left: 4px solid var(--primary);
+}
+
+.acknowledgment-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.65rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--primary);
+}
+
+.acknowledgment-card p {
+    margin: 0 0 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.acknowledgment-card p:last-child {
+    margin-bottom: 0;
+}
