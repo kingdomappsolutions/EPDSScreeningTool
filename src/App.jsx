@@ -12,14 +12,14 @@ const CONTENT = {
         title: "Edinburgh Postnatal Depression Scale (EPDS)",
         subtitle:
             "Your Personal Postpartum Wellness Screening & Resource Guide",
-        losSectionTitle: "NICU Stay Information",
-        losLabel:
-            "How many days has your baby been in the NICU? (Enter 0 if born today):",
-        losPlaceholder: "e.g., 7",
-        losHelper:
-            "Recorded anonymously as total days in the NICU. No names, birth dates, or personal identifiers are collected.",
-        losWarning:
-            "Please enter the number of days your baby has been in the NICU (0 or greater).",
+        dobSectionTitle: "NICU Stay Information",
+        dobLabel: "Infant's Date of Birth / Delivery:",
+        dobHelper:
+            "Used only to calculate current NICU length of stay in days. Exact birth dates are not saved or stored.",
+        losPreviewLabel: "Calculated NICU Length of Stay:",
+        losUnit: "days",
+        dobWarning:
+            "Please enter your infant's date of birth / delivery (cannot be a future date).",
         instructionsTitle: "Instructions",
         instructionsText:
             "Since you are either pregnant or have recently had a baby, we want to know how you feel. Please select the answer that comes closest to how you have felt IN THE PAST 7 DAYS—not just how you feel today. Complete all 10 items. This is a screening test; not a medical diagnosis. If something doesn’t seem right, call your health care provider regardless of your score.",
@@ -148,7 +148,7 @@ const CONTENT = {
         submittingBtn: "Submitting...",
         resetBtn: "Clear & Start Over",
         incompleteWarning:
-            "Please enter the NICU length of stay and answer all 10 questions before viewing your results.",
+            "Please enter the infant birth date and answer all 10 questions before viewing your results.",
         progressText: "Completed",
         resultsHeading: "Your Personal Postpartum Wellness Resource Guide",
         totalScoreLabel: "Your Total EPDS Score",
@@ -282,14 +282,14 @@ const CONTENT = {
         title: "Escala Edinburgh para la Depresión Postnatal (EPDS)",
         subtitle:
             "Guía Personal de Detección y Recursos para el Bienestar Posparto",
-        losSectionTitle: "Información de Estadía en la NICU",
-        losLabel:
-            "¿Cuántos días ha estado su bebé en la NICU? (Ingrese 0 si nació hoy):",
-        losPlaceholder: "ej., 7",
-        losHelper:
-            "Se registra de forma anónima como el total de días en la NICU. No se recopilan nombres, fechas de nacimiento ni datos personales.",
-        losWarning:
-            "Por favor ingrese el número de días que su bebé ha estado en la NICU (0 o más).",
+        dobSectionTitle: "Información de Estadía en la NICU",
+        dobLabel: "Fecha de Nacimiento / Parto del Bebé:",
+        dobHelper:
+            "Se utiliza únicamente para calcular los días actuales de estadía en la NICU. La fecha exacta de nacimiento no se guarda ni se almacena.",
+        losPreviewLabel: "Duración Calculada en la NICU:",
+        losUnit: "días",
+        dobWarning:
+            "Por favor ingrese la fecha de nacimiento / parto del bebé (no puede ser una fecha futura).",
         instructionsTitle: "Instrucciones",
         instructionsText:
             "Como usted está embarazada o hace poco que tuvo un bebé, nos gustaría saber como se siente actualmente. Por favor MARQUE la respuesta que más se acerca a como se ha sentido durante LOS ÚLTIMOS 7 DÍAS y no sólo como se ha sentido hoy. Complete las 10 preguntas. Esta es una prueba de detección; no es un diagnóstico médico. Si algo no parece estar bien, llame a su proveedor de atención médica sin importar su puntaje.",
@@ -424,7 +424,7 @@ const CONTENT = {
         submittingBtn: "Enviando...",
         resetBtn: "Borrar y Comenzar de Nuevo",
         incompleteWarning:
-            "Por favor ingrese los días en la NICU y responda las 10 preguntas antes de ver sus resultados.",
+            "Por favor ingrese la fecha de nacimiento del bebé y responda las 10 preguntas antes de ver sus resultados.",
         progressText: "Completado",
         resultsHeading:
             "Su Guía Personal de Recursos para el Bienestar Posparto",
@@ -558,7 +558,7 @@ const CONTENT = {
 
 export default function App() {
     const [lang, setLang] = useState("en")
-    const [losInput, setLosInput] = useState("")
+    const [infantDob, setInfantDob] = useState("")
     const [answers, setAnswers] = useState({})
     const [submitted, setSubmitted] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -568,20 +568,41 @@ export default function App() {
     const answeredCount = Object.keys(answers).length
     const allAnswered = answeredCount === 10
 
-    const parsedLos = losInput.trim() === "" ? NaN : Number(losInput)
-    const isLosValid = Number.isInteger(parsedLos) && parsedLos >= 0
+    // Format today's local date as YYYY-MM-DD for the max attribute on <input type="date">
+    const getTodayLocalString = () => {
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, "0")
+        const day = String(now.getDate()).padStart(2, "0")
+        return `${year}-${month}-${day}`
+    }
+
+    // Calculate Length of Stay in days: (Screening Date - Infant DOB)
+    const calculateLengthOfStay = (dobString) => {
+        if (!dobString) return null
+        const [year, month, day] = dobString.split("-").map(Number)
+        const dobMidnight = new Date(year, month - 1, day)
+        const now = new Date()
+        const todayMidnight = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+        )
+        const diffMs = todayMidnight - dobMidnight
+        const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+        return diffDays >= 0 ? diffDays : null
+    }
+
+    const nicuLosDays = calculateLengthOfStay(infantDob)
+    const isDobValid = nicuLosDays !== null
 
     const toggleLanguage = () => {
         setLang((prev) => (prev === "en" ? "es" : "en"))
     }
 
-    const handleLosChange = (e) => {
-        const val = e.target.value
-        // Allow empty string or non-negative digits only
-        if (val === "" || /^\d+$/.test(val)) {
-            setLosInput(val)
-            if (showWarning) setShowWarning(false)
-        }
+    const handleDobChange = (e) => {
+        setInfantDob(e.target.value)
+        if (showWarning) setShowWarning(false)
     }
 
     const handleSelect = (questionId, optionIndex) => {
@@ -618,7 +639,7 @@ export default function App() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        if (!allAnswered || !isLosValid) {
+        if (!allAnswered || !isDobValid) {
             setShowWarning(true)
             return
         }
@@ -628,7 +649,7 @@ export default function App() {
 
         const payload = {
             language: lang === "en" ? "English" : "Spanish",
-            nicuLosDays: parsedLos,
+            nicuLosDays,
             ...itemScores,
             totalScore: total,
             riskTier:
@@ -665,7 +686,7 @@ export default function App() {
     }
 
     const handleReset = () => {
-        setLosInput("")
+        setInfantDob("")
         setAnswers({})
         setSubmitted(false)
         setShowWarning(false)
@@ -710,27 +731,33 @@ export default function App() {
                 {!submitted ? (
                     <form onSubmit={handleSubmit} noValidate>
                         <section
-                            className={`card los-card ${showWarning && !isLosValid ? "unanswered-error" : ""}`}
+                            className={`card dob-card ${showWarning && !isDobValid ? "unanswered-error" : ""}`}
                         >
-                            <h2>{t.losSectionTitle}</h2>
-                            <label htmlFor="nicu-los" className="los-label">
-                                {t.losLabel}
+                            <h2>{t.dobSectionTitle}</h2>
+                            <label htmlFor="infant-dob" className="dob-label">
+                                {t.dobLabel}
                             </label>
                             <input
-                                id="nicu-los"
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                className="los-input"
-                                placeholder={t.losPlaceholder}
-                                value={losInput}
-                                onChange={handleLosChange}
+                                id="infant-dob"
+                                type="date"
+                                className="dob-input"
+                                value={infantDob}
+                                max={getTodayLocalString()}
+                                onChange={handleDobChange}
                                 required
                             />
-                            {showWarning && !isLosValid && (
-                                <p className="field-error">{t.losWarning}</p>
+                            {isDobValid && (
+                                <div className="los-badge">
+                                    {t.losPreviewLabel}{" "}
+                                    <strong>
+                                        {nicuLosDays} {t.losUnit}
+                                    </strong>
+                                </div>
                             )}
-                            <p className="los-helper">{t.losHelper}</p>
+                            {showWarning && !isDobValid && (
+                                <p className="field-error">{t.dobWarning}</p>
+                            )}
+                            <p className="dob-helper">{t.dobHelper}</p>
                         </section>
 
                         <section className="card instructions-card">
