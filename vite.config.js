@@ -3,5 +3,5 @@ import react from "@vitejs/plugin-react"
 
 export default defineConfig({
     plugins: [react()],
-    base: "/epds-screening/", // Must match your GitHub repo name
+    base: "/EPDSScreeningTool/", // Must match your GitHub repo name
 })
